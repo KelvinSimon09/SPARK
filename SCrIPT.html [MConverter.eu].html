@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 7.4.3.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="00:00:00"/>
+	<style type="text/css">
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		p { line-height: 115%; margin-bottom: 0.1in; background: transparent }
+		pre { background: transparent }
+		pre.western { font-family: "Liberation Mono", monospace; font-size: 10pt }
+		pre.cjk { font-family: "NSimSun", monospace; font-size: 10pt }
+		pre.ctl { font-family: "Liberation Mono", monospace; font-size: 10pt }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre class="western">{
+ &quot;cells&quot;: [
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 1,
+   &quot;id&quot;: &quot;2f2bec10&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;#Library Importing\n&quot;,
+    &quot;\n&quot;,
+    &quot;import pandas as pd\n&quot;,
+    &quot;from pyspark.sql import SparkSession\n&quot;,
+    &quot;from pyspark.context import SparkContext\n&quot;,
+    &quot;from pyspark.sql.functions import *\n&quot;,
+    &quot;from pyspark.sql.types import *\n&quot;,
+    &quot;from datetime import date, timedelta, datetime\n&quot;,
+    &quot;import time&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;7620cc15&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Initializing SParkSession&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 42,
+   &quot;id&quot;: &quot;b7173c84&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;#Initialization of a Spark Session\n&quot;,
+    &quot;sc = SparkSession.builder.appName(\&quot;PySparkExample\&quot;)\\\n&quot;,
+    &quot;    .config (\&quot;spark.sql.shuffle.partitions\&quot;, \&quot;50\&quot;) \\\n&quot;,
+    &quot;    .config(\&quot;spark.driver.maxResultSize\&quot;,\&quot;5g\&quot;) \\\n&quot;,
+    &quot;    .config (\&quot;spark.sql.execution.pyspark.enabled\&quot;, \&quot;true\&quot;)\\\n&quot;,
+    &quot;    .getOrCreate()\n&quot;,
+    &quot; &quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;df9afcc2&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot; Creating DataFrames &quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 3,
+   &quot;id&quot;: &quot;d583ad64&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stderr&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;                                                                                \r&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;#Read from json, parquet, txt, csv formatted files.\n&quot;,
+    &quot;#Creates a spark data frame called as raw_data.\n&quot;,
+    &quot;\n&quot;,
+    &quot;#JSON\n&quot;,
+    &quot;dataframe = sc.read.json('./nyt2.json')\n&quot;,
+    &quot;\n&quot;,
+    &quot;#TXT FILES\n&quot;,
+    &quot;# dataframe_txt = sc.read.text('text_data.txt')\n&quot;,
+    &quot;\n&quot;,
+    &quot;#CSV FILES\n&quot;,
+    &quot;# dataframe_csv = sc.read.csv('csv_data.csv')\n&quot;,
+    &quot;\n&quot;,
+    &quot;#PARQUET FILES\n&quot;,
+    &quot;# dataframe_parquet = sc.read.load('parquet_data.parquet')\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 4,
+   &quot;id&quot;: &quot;2ada714a&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;dataframe = sc.read.json('./nyt2.json')&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 5,
+   &quot;id&quot;: &quot;c2931976&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|                 _id|  amazon_product_url|              author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|\n&quot;,
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|        Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|   Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|       Putnam| {4}|           {0}|           THE FRONT|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|    Doubleday| {5}|           {0}|               SNUFF|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|James Patterson a...|{{1211587200000}}|A woman finds an ...|{24.99, null}|{{1212883200000}}|Little, Brown| {6}|           {3}|SUNDAYS AT TIFFANY’S|          {4}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       John Sandford|{{1211587200000}}|The Minneapolis d...|{26.95, null}|{{1212883200000}}|       Putnam| {7}|           {4}|        PHANTOM PREY|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       Jimmy Buffett|{{1211587200000}}|A Southern family...|{21.99, null}|{{1212883200000}}|Little, Brown| {8}|           {6}|          SWINE NOT?|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Elizabeth George|{{1211587200000}}|In Cornwall, tryi...|{27.95, null}|{{1212883200000}}|       Harper| {9}|           {8}|     CARELESS IN RED|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|      David Baldacci|{{1211587200000}}|An intelligence a...|{26.99, null}|{{1212883200000}}|Grand Central|{10}|           {7}|     THE WHOLE TRUTH|          {5}|\n&quot;,
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;only showing top 10 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe.show(10)\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;d5188adf&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Duplicate Values &quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 6,
+   &quot;id&quot;: &quot;baebf104&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;dataframe_dropdup = dataframe.dropDuplicates()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 7,
+   &quot;id&quot;: &quot;92de16ec&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+----------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|                 _id|  amazon_product_url|              author| bestsellers_date|         description|        price|   published_date|       publisher|rank|rank_last_week|               title|weeks_on_list|\n&quot;,
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+----------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Clive Cussler wit...|{{1213401600000}}|Juan Cabrillo and...|{26.95, null}|{{1214697600000}}|          Putnam| {4}|           {3}|         PLAGUE SHIP|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|      Jeffery Deaver|{{1215820800000}}|Detectives Lincol...|    {null, 0}|{{1217116800000}}|Simon &amp; Schuster|{20}|           {0}|   THE BROKEN WINDOW|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|        Daniel Silva|{{1217030400000}}|Gabriel Allon, an...|{26.95, null}|{{1218326400000}}|          Putnam| {1}|           {0}|  THE SECRET SERVANT|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Janet Evanovich|{{1217030400000}}|Stephanie Plum an...|{27.95, null}|{{1218326400000}}|    St. Martin’s| {9}|           {7}|   FEARLESS FOURTEEN|          {6}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|          Jane Green|{{1218240000000}}|A woman’s life ch...|    {null, 0}|{{1219536000000}}|          Viking|{18}|           {0}|     THE BEACH HOUSE|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|      Brunonia Barry|{{1220054400000}}|Secrets of a fami...|{24.95, null}|{{1221350400000}}|          Morrow|{13}|          {10}|     THE LACE READER|          {5}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    David Wroblewski|{{1221264000000}}|A mute takes refu...|{25.95, null}|{{1222560000000}}|            Ecco| {9}|           {9}|THE STORY OF EDGA...|         {14}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       John Sandford|{{1225497600000}}|Virgil Flowers in...|    {null, 0}|{{1226793600000}}|          Putnam|{20}|           {0}|      HEAT LIGHTNING|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|            J D Robb|{{1226102400000}}|Lt. Eve Dallas in...|{25.95, null}|{{1227398400000}}|          Putnam| {2}|           {0}|  SALVATION IN DEATH|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       Toni Morrison|{{1226707200000}}|In 17th-century A...|{23.95, null}|{{1228003200000}}|           Knopf| {5}|           {0}|             A MERCY|          {1}|\n&quot;,
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+----------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;only showing top 10 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe_dropdup.show(10)\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 8,
+   &quot;id&quot;: &quot;dd64fde3&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;['_id',\n&quot;,
+       &quot; 'amazon_product_url',\n&quot;,
+       &quot; 'author',\n&quot;,
+       &quot; 'bestsellers_date',\n&quot;,
+       &quot; 'description',\n&quot;,
+       &quot; 'price',\n&quot;,
+       &quot; 'published_date',\n&quot;,
+       &quot; 'publisher',\n&quot;,
+       &quot; 'rank',\n&quot;,
+       &quot; 'rank_last_week',\n&quot;,
+       &quot; 'title',\n&quot;,
+       &quot; 'weeks_on_list']&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 8,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe.columns&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;eb70448c&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Queries &quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;310342a6&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;SELECT&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 9,
+   &quot;id&quot;: &quot;aaeeadef&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+\n&quot;,
+      &quot;|              author|\n&quot;,
+      &quot;+--------------------+\n&quot;,
+      &quot;|       Dean R Koontz|\n&quot;,
+      &quot;|     Stephenie Meyer|\n&quot;,
+      &quot;|        Emily Giffin|\n&quot;,
+      &quot;|   Patricia Cornwell|\n&quot;,
+      &quot;|     Chuck Palahniuk|\n&quot;,
+      &quot;|James Patterson a...|\n&quot;,
+      &quot;|       John Sandford|\n&quot;,
+      &quot;|       Jimmy Buffett|\n&quot;,
+      &quot;|    Elizabeth George|\n&quot;,
+      &quot;|      David Baldacci|\n&quot;,
+      &quot;+--------------------+\n&quot;,
+      &quot;only showing top 10 rows\n&quot;,
+      &quot;\n&quot;,
+      &quot;+--------------------+--------------------+----+-------------+\n&quot;,
+      &quot;|              author|               title|rank|        price|\n&quot;,
+      &quot;+--------------------+--------------------+----+-------------+\n&quot;,
+      &quot;|       Dean R Koontz|           ODD HOURS| {1}|   {null, 27}|\n&quot;,
+      &quot;|     Stephenie Meyer|            THE HOST| {2}|{25.99, null}|\n&quot;,
+      &quot;|        Emily Giffin|LOVE THE ONE YOU'...| {3}|{24.95, null}|\n&quot;,
+      &quot;|   Patricia Cornwell|           THE FRONT| {4}|{22.95, null}|\n&quot;,
+      &quot;|     Chuck Palahniuk|               SNUFF| {5}|{24.95, null}|\n&quot;,
+      &quot;|James Patterson a...|SUNDAYS AT TIFFANY’S| {6}|{24.99, null}|\n&quot;,
+      &quot;|       John Sandford|        PHANTOM PREY| {7}|{26.95, null}|\n&quot;,
+      &quot;|       Jimmy Buffett|          SWINE NOT?| {8}|{21.99, null}|\n&quot;,
+      &quot;|    Elizabeth George|     CARELESS IN RED| {9}|{27.95, null}|\n&quot;,
+      &quot;|      David Baldacci|     THE WHOLE TRUTH|{10}|{26.99, null}|\n&quot;,
+      &quot;+--------------------+--------------------+----+-------------+\n&quot;,
+      &quot;only showing top 10 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Select Operation\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(\&quot;author\&quot;).show(10) #Show all entries in title column\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(\&quot;author\&quot;, \&quot;title\&quot;, \&quot;rank\&quot;, \&quot;price\&quot;).show(10)  #Show all entries in title, author, rank, price columns&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;cb940dc4&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;When&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 10,
+   &quot;id&quot;: &quot;3c4d7a31&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+-----------------------------------------------------+\n&quot;,
+      &quot;|               title|CASE WHEN (NOT (title = ODD HOURS)) THEN 1 ELSE 0 END|\n&quot;,
+      &quot;+--------------------+-----------------------------------------------------+\n&quot;,
+      &quot;|           ODD HOURS|                                                    0|\n&quot;,
+      &quot;|            THE HOST|                                                    1|\n&quot;,
+      &quot;|LOVE THE ONE YOU'...|                                                    1|\n&quot;,
+      &quot;|           THE FRONT|                                                    1|\n&quot;,
+      &quot;|               SNUFF|                                                    1|\n&quot;,
+      &quot;|SUNDAYS AT TIFFANY’S|                                                    1|\n&quot;,
+      &quot;|        PHANTOM PREY|                                                    1|\n&quot;,
+      &quot;|          SWINE NOT?|                                                    1|\n&quot;,
+      &quot;|     CARELESS IN RED|                                                    1|\n&quot;,
+      &quot;|     THE WHOLE TRUTH|                                                    1|\n&quot;,
+      &quot;+--------------------+-----------------------------------------------------+\n&quot;,
+      &quot;only showing top 10 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Show title and assign 0 or 1 depending on title\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(\&quot;title\&quot;, when(dataframe.title != 'ODD HOURS', 1).otherwise(0)).show(10)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 11,
+   &quot;id&quot;: &quot;8ea8a65d&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-------------+-----------------+--------------------+-------------+-----------------+------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|                 _id|  amazon_product_url|       author| bestsellers_date|         description|        price|   published_date|   publisher|rank|rank_last_week|               title|weeks_on_list|\n&quot;,
+      &quot;+--------------------+--------------------+-------------+-----------------+--------------------+-------------+-----------------+------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...| Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}|St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|John Sandford|{{1211587200000}}|The Minneapolis d...|{26.95, null}|{{1212883200000}}|      Putnam| {7}|           {4}|        PHANTOM PREY|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...| Emily Giffin|{{1212192000000}}|A woman’s happy m...|{24.95, null}|{{1213488000000}}|St. Martin’s| {4}|           {3}|LOVE THE ONE YOU'...|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|John Sandford|{{1212192000000}}|The Minneapolis d...|{26.95, null}|{{1213488000000}}|      Putnam| {9}|           {7}|        PHANTOM PREY|          {4}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...| Emily Giffin|{{1212796800000}}|A woman’s happy m...|{24.95, null}|{{1214092800000}}|St. Martin’s| {4}|           {4}|LOVE THE ONE YOU'...|          {4}|\n&quot;,
+      &quot;+--------------------+--------------------+-------------+-----------------+--------------------+-------------+-----------------+------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Show rows with specified authors if in the given options\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe [dataframe.author.isin(\&quot;John Sandford\&quot;,\&quot;Emily Giffin\&quot;)].show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;a9c25e19&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Like &quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 16,
+   &quot;id&quot;: &quot;66867b99&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+------------------+\n&quot;,
+      &quot;|              author|               title|title LIKE % THE %|\n&quot;,
+      &quot;+--------------------+--------------------+------------------+\n&quot;,
+      &quot;|       Dean R Koontz|           ODD HOURS|             false|\n&quot;,
+      &quot;|     Stephenie Meyer|            THE HOST|             false|\n&quot;,
+      &quot;|        Emily Giffin|LOVE THE ONE YOU'...|              true|\n&quot;,
+      &quot;|   Patricia Cornwell|           THE FRONT|             false|\n&quot;,
+      &quot;|     Chuck Palahniuk|               SNUFF|             false|\n&quot;,
+      &quot;|James Patterson a...|SUNDAYS AT TIFFANY’S|             false|\n&quot;,
+      &quot;|       John Sandford|        PHANTOM PREY|             false|\n&quot;,
+      &quot;|       Jimmy Buffett|          SWINE NOT?|             false|\n&quot;,
+      &quot;|    Elizabeth George|     CARELESS IN RED|             false|\n&quot;,
+      &quot;|      David Baldacci|     THE WHOLE TRUTH|             false|\n&quot;,
+      &quot;|        Troy Denning|          INVINCIBLE|             false|\n&quot;,
+      &quot;|          James Frey|BRIGHT SHINY MORNING|             false|\n&quot;,
+      &quot;|         Garth Stein|THE ART OF RACING...|              true|\n&quot;,
+      &quot;|     Debbie Macomber|       TWENTY WISHES|             false|\n&quot;,
+      &quot;|         Jeff Shaara|      THE STEEL WAVE|             false|\n&quot;,
+      &quot;+--------------------+--------------------+------------------+\n&quot;,
+      &quot;only showing top 15 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Show author and title is TRUE if title has \&quot; THE \&quot; word in titles\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(\&quot;author\&quot;, \&quot;title\&quot;, dataframe.title.like(\&quot;% THE %\&quot;)).show(15)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;14fd8943&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;StartsWith - EndsWith&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 12,
+   &quot;id&quot;: &quot;39ccc129&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+-----------------+--------------------+----------------------+\n&quot;,
+      &quot;|           author|               title|startswith(title, THE)|\n&quot;,
+      &quot;+-----------------+--------------------+----------------------+\n&quot;,
+      &quot;|    Dean R Koontz|           ODD HOURS|                 false|\n&quot;,
+      &quot;|  Stephenie Meyer|            THE HOST|                  true|\n&quot;,
+      &quot;|     Emily Giffin|LOVE THE ONE YOU'...|                 false|\n&quot;,
+      &quot;|Patricia Cornwell|           THE FRONT|                  true|\n&quot;,
+      &quot;|  Chuck Palahniuk|               SNUFF|                 false|\n&quot;,
+      &quot;+-----------------+--------------------+----------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;,
+      &quot;+-----------------+--------------------+-------------------+\n&quot;,
+      &quot;|           author|               title|endswith(title, NT)|\n&quot;,
+      &quot;+-----------------+--------------------+-------------------+\n&quot;,
+      &quot;|    Dean R Koontz|           ODD HOURS|              false|\n&quot;,
+      &quot;|  Stephenie Meyer|            THE HOST|              false|\n&quot;,
+      &quot;|     Emily Giffin|LOVE THE ONE YOU'...|              false|\n&quot;,
+      &quot;|Patricia Cornwell|           THE FRONT|               true|\n&quot;,
+      &quot;|  Chuck Palahniuk|               SNUFF|              false|\n&quot;,
+      &quot;+-----------------+--------------------+-------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe.select(\&quot;author\&quot;, \&quot;title\&quot;, dataframe.title.startswith(\&quot;THE\&quot;)).show(5)\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(\&quot;author\&quot;, \&quot;title\&quot;, dataframe.title.endswith(\&quot;NT\&quot;)).show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;41d28fa1&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Substring&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 13,
+   &quot;id&quot;: &quot;0b8bef94&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+------+\n&quot;,
+      &quot;| title|\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;|Dean R|\n&quot;,
+      &quot;|Stephe|\n&quot;,
+      &quot;|Emily |\n&quot;,
+      &quot;|Patric|\n&quot;,
+      &quot;|Chuck |\n&quot;,
+      &quot;|James |\n&quot;,
+      &quot;|John S|\n&quot;,
+      &quot;|Jimmy |\n&quot;,
+      &quot;|Elizab|\n&quot;,
+      &quot;|David |\n&quot;,
+      &quot;|Troy D|\n&quot;,
+      &quot;|James |\n&quot;,
+      &quot;|Garth |\n&quot;,
+      &quot;|Debbie|\n&quot;,
+      &quot;|Jeff S|\n&quot;,
+      &quot;|Philli|\n&quot;,
+      &quot;|Jhumpa|\n&quot;,
+      &quot;|Joseph|\n&quot;,
+      &quot;|John G|\n&quot;,
+      &quot;|James |\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;only showing top 20 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe.select(dataframe.author.substr(1, 6).alias(\&quot;title\&quot;)).show()\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 14,
+   &quot;id&quot;: &quot;b6b9ae48&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+-----+\n&quot;,
+      &quot;|title|\n&quot;,
+      &quot;+-----+\n&quot;,
+      &quot;|  Dea|\n&quot;,
+      &quot;|  Ste|\n&quot;,
+      &quot;|  Emi|\n&quot;,
+      &quot;|  Pat|\n&quot;,
+      &quot;|  Chu|\n&quot;,
+      &quot;+-----+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;| title|\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;|an R K|\n&quot;,
+      &quot;|epheni|\n&quot;,
+      &quot;|ily Gi|\n&quot;,
+      &quot;|tricia|\n&quot;,
+      &quot;|uck Pa|\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;| title|\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;|Dean R|\n&quot;,
+      &quot;|Stephe|\n&quot;,
+      &quot;|Emily |\n&quot;,
+      &quot;|Patric|\n&quot;,
+      &quot;|Chuck |\n&quot;,
+      &quot;+------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe.select(dataframe.author.substr(1, 3).alias(\&quot;title\&quot;)).show(5)\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(dataframe.author.substr(3, 6).alias(\&quot;title\&quot;)).show(5)\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe.select(dataframe.author.substr(1, 6).alias(\&quot;title\&quot;)).show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;57a7ba49&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;INSPECT DATA&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 15,
+   &quot;id&quot;: &quot;ca177b8b&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;[('_id', 'struct&lt;$oid:string&gt;'),\n&quot;,
+       &quot; ('amazon_product_url', 'string'),\n&quot;,
+       &quot; ('author', 'string'),\n&quot;,
+       &quot; ('bestsellers_date', 'struct&lt;$date:struct&lt;$numberLong:string&gt;&gt;'),\n&quot;,
+       &quot; ('description', 'string'),\n&quot;,
+       &quot; ('price', 'struct&lt;$numberDouble:string,$numberInt:string&gt;'),\n&quot;,
+       &quot; ('published_date', 'struct&lt;$date:struct&lt;$numberLong:string&gt;&gt;'),\n&quot;,
+       &quot; ('publisher', 'string'),\n&quot;,
+       &quot; ('rank', 'struct&lt;$numberInt:string&gt;'),\n&quot;,
+       &quot; ('rank_last_week', 'struct&lt;$numberInt:string&gt;'),\n&quot;,
+       &quot; ('title', 'string'),\n&quot;,
+       &quot; ('weeks_on_list', 'struct&lt;$numberInt:string&gt;')]&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 15,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Returns dataframe column names and data types\n&quot;,
+    &quot;dataframe.dtypes&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 16,
+   &quot;id&quot;: &quot;84002ff9&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+--------------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|                 _id|  amazon_product_url|              author| bestsellers_date|         description|        price|   published_date|           publisher|rank|rank_last_week|               title|weeks_on_list|\n&quot;,
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+--------------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|              Bantam| {1}|           {0}|           ODD HOURS|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|       Little, Brown| {2}|           {1}|            THE HOST|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|        Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}|        St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|   Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|              Putnam| {4}|           {0}|           THE FRONT|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|           Doubleday| {5}|           {0}|               SNUFF|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|James Patterson a...|{{1211587200000}}|A woman finds an ...|{24.99, null}|{{1212883200000}}|       Little, Brown| {6}|           {3}|SUNDAYS AT TIFFANY’S|          {4}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       John Sandford|{{1211587200000}}|The Minneapolis d...|{26.95, null}|{{1212883200000}}|              Putnam| {7}|           {4}|        PHANTOM PREY|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       Jimmy Buffett|{{1211587200000}}|A Southern family...|{21.99, null}|{{1212883200000}}|       Little, Brown| {8}|           {6}|          SWINE NOT?|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Elizabeth George|{{1211587200000}}|In Cornwall, tryi...|{27.95, null}|{{1212883200000}}|              Harper| {9}|           {8}|     CARELESS IN RED|          {3}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|      David Baldacci|{{1211587200000}}|An intelligence a...|{26.99, null}|{{1212883200000}}|       Grand Central|{10}|           {7}|     THE WHOLE TRUTH|          {5}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|        Troy Denning|{{1211587200000}}|The New Jedi orde...|   {null, 27}|{{1212883200000}}|  Del Rey/Ballantine|{11}|           {5}|          INVINCIBLE|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|          James Frey|{{1211587200000}}|A novel, set in L...|{26.95, null}|{{1212883200000}}|              Harper|{12}|           {9}|BRIGHT SHINY MORNING|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|         Garth Stein|{{1211587200000}}|A Lab-terrier mix...|{23.95, null}|{{1212883200000}}|              Harper|{13}|           {0}|THE ART OF RACING...|          {1}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Debbie Macomber|{{1211587200000}}|A widow who owns ...|{24.95, null}|{{1212883200000}}|                Mira|{14}|          {10}|       TWENTY WISHES|          {4}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|         Jeff Shaara|{{1211587200000}}|A novel about the...|   {null, 28}|{{1212883200000}}|          Ballantine|{15}|          {11}|      THE STEEL WAVE|          {2}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Phillip Margolin|{{1211587200000}}|                    |    {null, 0}|{{1212883200000}}|HarperCollins Pub...|{16}|           {0}| EXECUTIVE PRIVILEGE|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       Jhumpa Lahiri|{{1211587200000}}|Stories of the an...|    {null, 0}|{{1212883200000}}|               Knopf|{17}|           {0}|  UNACCUSTOMED EARTH|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|      Joseph O'Neill|{{1211587200000}}|A Dutchman desert...|    {null, 0}|{{1212883200000}}|Knopf Publishing ...|{18}|           {0}|          NETHERLAND|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|        John Grisham|{{1211587200000}}|Political and leg...|    {null, 0}|{{1212883200000}}|Doubleday Publishing|{19}|           {0}|          THE APPEAL|          {0}|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|       James Rollins|{{1211587200000}}|                    |    {null, 0}|{{1212883200000}}|Random House Publ...|{20}|           {0}|INDIANA JONES AND...|          {0}|\n&quot;,
+      &quot;+--------------------+--------------------+--------------------+-----------------+--------------------+-------------+-----------------+--------------------+----+--------------+--------------------+-------------+\n&quot;,
+      &quot;only showing top 20 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Displays the content of dataframe\n&quot;,
+    &quot;dataframe.show()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 17,
+   &quot;id&quot;: &quot;3e71a628&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;Row(_id=Row($oid='5b4aa4ead3089013507db18b'), amazon_product_url='http://www.amazon.com/Odd-Hours-Dean-Koontz/dp/0553807056?tag=NYTBS-20', author='Dean R Koontz', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description='Odd Thomas, who can communicate with the dead, confronts evil forces in a California coastal town.', price=Row($numberDouble=None, $numberInt='27'), published_date=Row($date=Row($numberLong='1212883200000')), publisher='Bantam', rank=Row($numberInt='1'), rank_last_week=Row($numberInt='0'), title='ODD HOURS', weeks_on_list=Row($numberInt='1'))&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 17,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Return first n rows\n&quot;,
+    &quot;dataframe.head()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 18,
+   &quot;id&quot;: &quot;5f5105ab&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;Row(_id=Row($oid='5b4aa4ead3089013507db18b'), amazon_product_url='http://www.amazon.com/Odd-Hours-Dean-Koontz/dp/0553807056?tag=NYTBS-20', author='Dean R Koontz', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description='Odd Thomas, who can communicate with the dead, confronts evil forces in a California coastal town.', price=Row($numberDouble=None, $numberInt='27'), published_date=Row($date=Row($numberLong='1212883200000')), publisher='Bantam', rank=Row($numberInt='1'), rank_last_week=Row($numberInt='0'), title='ODD HOURS', weeks_on_list=Row($numberInt='1'))&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 18,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Returns first row\n&quot;,
+    &quot;dataframe.first()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 19,
+   &quot;id&quot;: &quot;f440a13d&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;[Row(_id=Row($oid='5b4aa4ead3089013507db18b'), amazon_product_url='http://www.amazon.com/Odd-Hours-Dean-Koontz/dp/0553807056?tag=NYTBS-20', author='Dean R Koontz', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description='Odd Thomas, who can communicate with the dead, confronts evil forces in a California coastal town.', price=Row($numberDouble=None, $numberInt='27'), published_date=Row($date=Row($numberLong='1212883200000')), publisher='Bantam', rank=Row($numberInt='1'), rank_last_week=Row($numberInt='0'), title='ODD HOURS', weeks_on_list=Row($numberInt='1')),\n&quot;,
+       &quot; Row(_id=Row($oid='5b4aa4ead3089013507db18c'), amazon_product_url='http://www.amazon.com/The-Host-Novel-Stephenie-Meyer/dp/0316218502?tag=NYTBS-20', author='Stephenie Meyer', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description='Aliens have taken control of the minds and bodies of most humans, but one woman won’t surrender.', price=Row($numberDouble='25.99', $numberInt=None), published_date=Row($date=Row($numberLong='1212883200000')), publisher='Little, Brown', rank=Row($numberInt='2'), rank_last_week=Row($numberInt='1'), title='THE HOST', weeks_on_list=Row($numberInt='3')),\n&quot;,
+       &quot; Row(_id=Row($oid='5b4aa4ead3089013507db18d'), amazon_product_url='http://www.amazon.com/Love-Youre-With-Emily-Giffin/dp/0312348665?tag=NYTBS-20', author='Emily Giffin', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description=\&quot;A woman's happy marriage is shaken when she encounters an old boyfriend.\&quot;, price=Row($numberDouble='24.95', $numberInt=None), published_date=Row($date=Row($numberLong='1212883200000')), publisher=\&quot;St. Martin's\&quot;, rank=Row($numberInt='3'), rank_last_week=Row($numberInt='2'), title=\&quot;LOVE THE ONE YOU'RE WITH\&quot;, weeks_on_list=Row($numberInt='2')),\n&quot;,
+       &quot; Row(_id=Row($oid='5b4aa4ead3089013507db18e'), amazon_product_url='http://www.amazon.com/The-Front-Garano-Patricia-Cornwell-ebook/dp/B0017T0C9M?tag=NYTBS-20', author='Patricia Cornwell', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description='A Massachusetts state investigator and his team from \&quot;At Risk\&quot; confront a rogue association of municipal police departments.', price=Row($numberDouble='22.95', $numberInt=None), published_date=Row($date=Row($numberLong='1212883200000')), publisher='Putnam', rank=Row($numberInt='4'), rank_last_week=Row($numberInt='0'), title='THE FRONT', weeks_on_list=Row($numberInt='1')),\n&quot;,
+       &quot; Row(_id=Row($oid='5b4aa4ead3089013507db18f'), amazon_product_url='http://www.amazon.com/Snuff-Chuck-Palahniuk/dp/0385517882?tag=NYTBS-20', author='Chuck Palahniuk', bestsellers_date=Row($date=Row($numberLong='1211587200000')), description='An aging porn queens aims to cap her career by having sex on film with 600 men in one day.', price=Row($numberDouble='24.95', $numberInt=None), published_date=Row($date=Row($numberLong='1212883200000')), publisher='Doubleday', rank=Row($numberInt='5'), rank_last_week=Row($numberInt='0'), title='SNUFF', weeks_on_list=Row($numberInt='1'))]&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 19,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Return first n rows\n&quot;,
+    &quot;dataframe.take(5)\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 20,
+   &quot;id&quot;: &quot;01545fc4&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stderr&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;23/09/19 13:24:47 WARN package: Truncated the string representation of a plan since it was too large. This behavior can be adjusted by setting 'spark.sql.debug.maxToStringFields'.\n&quot;
+     ]
+    },
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+-------+--------------------+---------------+--------------------+---------+------------------+\n&quot;,
+      &quot;|summary|  amazon_product_url|         author|         description|publisher|             title|\n&quot;,
+      &quot;+-------+--------------------+---------------+--------------------+---------+------------------+\n&quot;,
+      &quot;|  count|               10195|          10195|               10195|    10195|             10195|\n&quot;,
+      &quot;|   mean|                null|           null|                null|     null|1877.7142857142858|\n&quot;,
+      &quot;| stddev|                null|           null|                null|     null| 370.9760613506458|\n&quot;,
+      &quot;|    min|http://www.amazon...|        AJ Finn|                    |      ACE|  10TH ANNIVERSARY|\n&quot;,
+      &quot;|    max|https://www.amazo...|various authors|’Tis for the Rebe...|allantine|               ZOO|\n&quot;,
+      &quot;+-------+--------------------+---------------+--------------------+---------+------------------+\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Computes summary statistics\n&quot;,
+    &quot;dataframe.describe().show()\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 21,
+   &quot;id&quot;: &quot;63907c0b&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;['_id',\n&quot;,
+       &quot; 'amazon_product_url',\n&quot;,
+       &quot; 'author',\n&quot;,
+       &quot; 'bestsellers_date',\n&quot;,
+       &quot; 'description',\n&quot;,
+       &quot; 'price',\n&quot;,
+       &quot; 'published_date',\n&quot;,
+       &quot; 'publisher',\n&quot;,
+       &quot; 'rank',\n&quot;,
+       &quot; 'rank_last_week',\n&quot;,
+       &quot; 'title',\n&quot;,
+       &quot; 'weeks_on_list']&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 21,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Returns columns of dataframe\n&quot;,
+    &quot;dataframe.columns&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 22,
+   &quot;id&quot;: &quot;a0f38011&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;10195&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 22,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Counts the number of rows in dataframe\n&quot;,
+    &quot;dataframe.count()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 23,
+   &quot;id&quot;: &quot;048ac7b8&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;10195&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 23,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Counts the number of distinct rows in dataframe\n&quot;,
+    &quot;dataframe.distinct().count()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;3ba3a1dd&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;ADD, UPDATE &amp; REMOVE COLUMNS&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 24,
+   &quot;id&quot;: &quot;4593bda5&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|  amazon_product_url|           author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|       Putnam| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|    Doubleday| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Lit() is required while we are creating columns with exact values.\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe = dataframe.withColumn('new_column', lit('This is a new column'))\n&quot;,
+    &quot;dataframe.show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 25,
+   &quot;id&quot;: &quot;932a5781&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|           author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|       Putnam| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|    Doubleday| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Update column 'amazon_product_url' with 'URL'\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe = dataframe.withColumnRenamed('amazon_product_url', 'URL')\n&quot;,
+    &quot;dataframe.show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 26,
+   &quot;id&quot;: &quot;c9710d4a&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|           author| bestsellers_date|         description|        price|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|           author| bestsellers_date|         description|        price|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;dataframe_remove = dataframe.drop(\&quot;publisher\&quot;, \&quot;published_date\&quot;).show(5)\n&quot;,
+    &quot;\n&quot;,
+    &quot;dataframe_remove2 = dataframe.drop(dataframe.publisher).drop(dataframe.published_date).show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;0b2af58e&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;GROUPBY&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 27,
+   &quot;id&quot;: &quot;c4e1b6d3&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------+-----+\n&quot;,
+      &quot;|rank_last_week|count|\n&quot;,
+      &quot;+--------------+-----+\n&quot;,
+      &quot;|           {7}|  470|\n&quot;,
+      &quot;|          {10}|  363|\n&quot;,
+      &quot;|          {15}|  123|\n&quot;,
+      &quot;|          {11}|  327|\n&quot;,
+      &quot;|           {4}|  524|\n&quot;,
+      &quot;|           {3}|  520|\n&quot;,
+      &quot;|          {12}|  289|\n&quot;,
+      &quot;|           {6}|  497|\n&quot;,
+      &quot;|          {13}|  246|\n&quot;,
+      &quot;|           {8}|  460|\n&quot;,
+      &quot;+--------------+-----+\n&quot;,
+      &quot;only showing top 10 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Group by author, count the books of the authors in the groups\n&quot;,
+    &quot;dataframe.groupBy(\&quot;rank_last_week\&quot;).count().show(10)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;6b079ccc&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;MISIING AND REPLACING VALUES&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 28,
+   &quot;id&quot;: &quot;e8f47801&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|           author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|       Putnam| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|    Doubleday| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Replace null values\n&quot;,
+    &quot;dataframe.na.fill(50).show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 29,
+   &quot;id&quot;: &quot;4fdc1a49&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|           author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|       Putnam| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|    Doubleday| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Return new dataframe restricting rows with null values\n&quot;,
+    &quot;dataframe.na.drop().show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 30,
+   &quot;id&quot;: &quot;f5ccf172&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|           author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|    Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|     Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Patricia Cornwell|{{1211587200000}}|A Massachusetts s...|{22.95, null}|{{1212883200000}}|       Putnam| {4}|           {0}|           THE FRONT|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Chuck Palahniuk|{{1211587200000}}|An aging porn que...|{24.95, null}|{{1212883200000}}|    Doubleday| {5}|           {0}|               SNUFF|          {1}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+-----------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 5 rows\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Return new dataframe replacing one value with another\n&quot;,
+    &quot;dataframe.na.replace(10, 20).show(5)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;687d99e3&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;RUNNING SQL QUERIES PROGRAMMATICALLY\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;c7339f25&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Registering DataFrames&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 32,
+   &quot;id&quot;: &quot;f717611b&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;dataframe.createGlobalTempView(\&quot;nyt2\&quot;)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;80d98f0c&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;Registering tables&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 34,
+   &quot;id&quot;: &quot;78fe3563&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;# Registering a table\n&quot;,
+    &quot;dataframe.createOrReplaceTempView(\&quot;df\&quot;)&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 35,
+   &quot;id&quot;: &quot;acbf04d5&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stdout&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;+--------------------+--------------------+---------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|                 _id|                 URL|         author| bestsellers_date|         description|        price|   published_date|    publisher|rank|rank_last_week|               title|weeks_on_list|          new_column|\n&quot;,
+      &quot;+--------------------+--------------------+---------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|  Dean R Koontz|{{1211587200000}}|Odd Thomas, who c...|   {null, 27}|{{1212883200000}}|       Bantam| {1}|           {0}|           ODD HOURS|          {1}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|Stephenie Meyer|{{1211587200000}}|Aliens have taken...|{25.99, null}|{{1212883200000}}|Little, Brown| {2}|           {1}|            THE HOST|          {3}|This is a new column|\n&quot;,
+      &quot;|{5b4aa4ead3089013...|http://www.amazon...|   Emily Giffin|{{1211587200000}}|A woman's happy m...|{24.95, null}|{{1212883200000}}| St. Martin's| {3}|           {2}|LOVE THE ONE YOU'...|          {2}|This is a new column|\n&quot;,
+      &quot;+--------------------+--------------------+---------------+-----------------+--------------------+-------------+-----------------+-------------+----+--------------+--------------------+-------------+--------------------+\n&quot;,
+      &quot;only showing top 3 rows\n&quot;,
+      &quot;\n&quot;,
+      &quot;+---------------+-----+\n&quot;,
+      &quot;|         Themes|count|\n&quot;,
+      &quot;+---------------+-----+\n&quot;,
+      &quot;|    Anger_Theme|  203|\n&quot;,
+      &quot;|   Other_Themes| 8778|\n&quot;,
+      &quot;|  Mystery_Theme|  454|\n&quot;,
+      &quot;|     Hate_Theme|   23|\n&quot;,
+      &quot;| Criminal_Theme|  305|\n&quot;,
+      &quot;|   Horror_Theme|    6|\n&quot;,
+      &quot;|Happiness_Theme|   34|\n&quot;,
+      &quot;|     Love_Theme|  392|\n&quot;,
+      &quot;+---------------+-----+\n&quot;,
+      &quot;\n&quot;
+     ]
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;sc.sql(\&quot;select * from df\&quot;).show(3)\n&quot;,
+    &quot;\n&quot;,
+    &quot;\n&quot;,
+    &quot;sc.sql(\&quot;select \\\n&quot;,
+    &quot;               CASE WHEN description LIKE '%love%' THEN 'Love_Theme' \\\n&quot;,
+    &quot;               WHEN description LIKE '%hate%' THEN 'Hate_Theme' \\\n&quot;,
+    &quot;               WHEN description LIKE '%happy%' THEN 'Happiness_Theme' \\\n&quot;,
+    &quot;               WHEN description LIKE '%anger%' THEN 'Anger_Theme' \\\n&quot;,
+    &quot;               WHEN description LIKE '%horror%' THEN 'Horror_Theme' \\\n&quot;,
+    &quot;               WHEN description LIKE '%death%' THEN 'Criminal_Theme' \\\n&quot;,
+    &quot;               WHEN description LIKE '%detective%' THEN 'Mystery_Theme' \\\n&quot;,
+    &quot;               ELSE 'Other_Themes' \\\n&quot;,
+    &quot;               END Themes \\\n&quot;,
+    &quot;       from df\&quot;).groupBy('Themes').count().show()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 36,
+   &quot;id&quot;: &quot;7437f407&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [
+    {
+     &quot;name&quot;: &quot;stderr&quot;,
+     &quot;output_type&quot;: &quot;stream&quot;,
+     &quot;text&quot;: [
+      &quot;                                                                                \r&quot;
+     ]
+    },
+    {
+     &quot;data&quot;: {
+      &quot;text/plain&quot;: [
+       &quot;'{\&quot;_id\&quot;:{\&quot;$oid\&quot;:\&quot;5b4aa4ead3089013507db18b\&quot;},\&quot;URL\&quot;:\&quot;http://www.amazon.com/Odd-Hours-Dean-Koontz/dp/0553807056?tag=NYTBS-20\&quot;,\&quot;author\&quot;:\&quot;Dean R Koontz\&quot;,\&quot;bestsellers_date\&quot;:{\&quot;$date\&quot;:{\&quot;$numberLong\&quot;:\&quot;1211587200000\&quot;}},\&quot;description\&quot;:\&quot;Odd Thomas, who can communicate with the dead, confronts evil forces in a California coastal town.\&quot;,\&quot;price\&quot;:{\&quot;$numberInt\&quot;:\&quot;27\&quot;},\&quot;published_date\&quot;:{\&quot;$date\&quot;:{\&quot;$numberLong\&quot;:\&quot;1212883200000\&quot;}},\&quot;publisher\&quot;:\&quot;Bantam\&quot;,\&quot;rank\&quot;:{\&quot;$numberInt\&quot;:\&quot;1\&quot;},\&quot;rank_last_week\&quot;:{\&quot;$numberInt\&quot;:\&quot;0\&quot;},\&quot;title\&quot;:\&quot;ODD HOURS\&quot;,\&quot;weeks_on_list\&quot;:{\&quot;$numberInt\&quot;:\&quot;1\&quot;},\&quot;new_column\&quot;:\&quot;This is a new column\&quot;}'&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 36,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Converting dataframe into a RDD of string\n&quot;,
+    &quot;dataframe.toJSON().first()&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 37,
+   &quot;id&quot;: &quot;e304f0d9&quot;,
+   &quot;metadata&quot;: {
+    &quot;scrolled&quot;: true
+   },
+   &quot;outputs&quot;: [
+    {
+     &quot;data&quot;: {
+      &quot;text/html&quot;: [
+       &quot;&lt;div&gt;\n&quot;,
+       &quot;&lt;style scoped&gt;\n&quot;,
+       &quot;    .dataframe tbody tr th:only-of-type {\n&quot;,
+       &quot;        vertical-align: middle;\n&quot;,
+       &quot;    }\n&quot;,
+       &quot;\n&quot;,
+       &quot;    .dataframe tbody tr th {\n&quot;,
+       &quot;        vertical-align: top;\n&quot;,
+       &quot;    }\n&quot;,
+       &quot;\n&quot;,
+       &quot;    .dataframe thead th {\n&quot;,
+       &quot;        text-align: right;\n&quot;,
+       &quot;    }\n&quot;,
+       &quot;&lt;/style&gt;\n&quot;,
+       &quot;&lt;table border=\&quot;1\&quot; class=\&quot;dataframe\&quot;&gt;\n&quot;,
+       &quot;  &lt;thead&gt;\n&quot;,
+       &quot;    &lt;tr style=\&quot;text-align: right;\&quot;&gt;\n&quot;,
+       &quot;      &lt;th&gt;&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;_id&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;URL&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;author&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;bestsellers_date&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;description&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;price&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;published_date&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;publisher&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;rank&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;rank_last_week&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;title&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;weeks_on_list&lt;/th&gt;\n&quot;,
+       &quot;      &lt;th&gt;new_column&lt;/th&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;  &lt;/thead&gt;\n&quot;,
+       &quot;  &lt;tbody&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;0&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507db18b,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;http://www.amazon.com/Odd-Hours-Dean-Koontz/dp...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Dean R Koontz&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1211587200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Odd Thomas, who can communicate with the dead,...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(None, 27)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1212883200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Bantam&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(1,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(0,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;ODD HOURS&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(1,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;1&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507db18c,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;http://www.amazon.com/The-Host-Novel-Stephenie...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Stephenie Meyer&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1211587200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Aliens have taken control of the minds and bod...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(25.99, None)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1212883200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Little, Brown&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(2,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(1,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;THE HOST&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(3,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;2&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507db18d,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;http://www.amazon.com/Love-Youre-With-Emily-Gi...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Emily Giffin&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1211587200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;A woman's happy marriage is shaken when she en...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(24.95, None)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1212883200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;St. Martin's&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(3,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(2,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;LOVE THE ONE YOU'RE WITH&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(2,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;3&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507db18e,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;http://www.amazon.com/The-Front-Garano-Patrici...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Patricia Cornwell&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1211587200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;A Massachusetts state investigator and his tea...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(22.95, None)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1212883200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Putnam&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(4,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(0,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;THE FRONT&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(1,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;4&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507db18f,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;http://www.amazon.com/Snuff-Chuck-Palahniuk/dp...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Chuck Palahniuk&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1211587200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;An aging porn queens aims to cap her career by...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(24.95, None)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1212883200000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Doubleday&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(0,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;SNUFF&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(1,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;...&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;...&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;10190&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507dd959,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;https://www.amazon.com/Clancy-Line-Sight-Jack-...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Mike Maden&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1530921600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Jack Ryan Jr. risks his life to protect a woma...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(None, 0)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1532217600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Putnam&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(11,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(6,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;TOM CLANCY LINE OF SIGHT&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(4,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;10191&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507dd95a,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;https://www.amazon.com/Something-Water-Novel-C...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Catherine Steadman&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1530921600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;A documentary filmmaker and an investment bank...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(None, 0)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1532217600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Ballantine&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(12,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(11,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;SOMETHING IN THE WATER&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;10192&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507dd95b,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;https://www.amazon.com/Little-Fires-Everywhere...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Celeste Ng&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1530921600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;An artist upends a quiet town outside Cleveland.&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(None, 0)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1532217600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Penguin Press&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(13,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(12,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;LITTLE FIRES EVERYWHERE&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(41,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;10193&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507dd95c,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;https://www.amazon.com/Shelter-Place-Nora-Robe...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Nora Roberts&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1530921600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Survivors of a mass shooting outside a mall in...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(None, 0)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1532217600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;St. Martin's&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(14,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;SHELTER IN PLACE&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(6,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;    &lt;tr&gt;\n&quot;,
+       &quot;      &lt;th&gt;10194&lt;/th&gt;\n&quot;,
+       &quot;      &lt;td&gt;(5b4aa4ead3089013507dd95d,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;https://www.amazon.com/Last-Time-Lied-Novel/dp...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Riley Sager&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1530921600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;A painter is in danger when she returns to the...&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(None, 0)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;((1532217600000,),)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;Dutton&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(15,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(0,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;THE LAST TIME I LIED&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;(1,)&lt;/td&gt;\n&quot;,
+       &quot;      &lt;td&gt;This is a new column&lt;/td&gt;\n&quot;,
+       &quot;    &lt;/tr&gt;\n&quot;,
+       &quot;  &lt;/tbody&gt;\n&quot;,
+       &quot;&lt;/table&gt;\n&quot;,
+       &quot;&lt;p&gt;10195 rows × 13 columns&lt;/p&gt;\n&quot;,
+       &quot;&lt;/div&gt;&quot;
+      ],
+      &quot;text/plain&quot;: [
+       &quot;                               _id  \\\n&quot;,
+       &quot;0      (5b4aa4ead3089013507db18b,)   \n&quot;,
+       &quot;1      (5b4aa4ead3089013507db18c,)   \n&quot;,
+       &quot;2      (5b4aa4ead3089013507db18d,)   \n&quot;,
+       &quot;3      (5b4aa4ead3089013507db18e,)   \n&quot;,
+       &quot;4      (5b4aa4ead3089013507db18f,)   \n&quot;,
+       &quot;...                            ...   \n&quot;,
+       &quot;10190  (5b4aa4ead3089013507dd959,)   \n&quot;,
+       &quot;10191  (5b4aa4ead3089013507dd95a,)   \n&quot;,
+       &quot;10192  (5b4aa4ead3089013507dd95b,)   \n&quot;,
+       &quot;10193  (5b4aa4ead3089013507dd95c,)   \n&quot;,
+       &quot;10194  (5b4aa4ead3089013507dd95d,)   \n&quot;,
+       &quot;\n&quot;,
+       &quot;                                                     URL              author  \\\n&quot;,
+       &quot;0      http://www.amazon.com/Odd-Hours-Dean-Koontz/dp...       Dean R Koontz   \n&quot;,
+       &quot;1      http://www.amazon.com/The-Host-Novel-Stephenie...     Stephenie Meyer   \n&quot;,
+       &quot;2      http://www.amazon.com/Love-Youre-With-Emily-Gi...        Emily Giffin   \n&quot;,
+       &quot;3      http://www.amazon.com/The-Front-Garano-Patrici...   Patricia Cornwell   \n&quot;,
+       &quot;4      http://www.amazon.com/Snuff-Chuck-Palahniuk/dp...     Chuck Palahniuk   \n&quot;,
+       &quot;...                                                  ...                 ...   \n&quot;,
+       &quot;10190  https://www.amazon.com/Clancy-Line-Sight-Jack-...          Mike Maden   \n&quot;,
+       &quot;10191  https://www.amazon.com/Something-Water-Novel-C...  Catherine Steadman   \n&quot;,
+       &quot;10192  https://www.amazon.com/Little-Fires-Everywhere...          Celeste Ng   \n&quot;,
+       &quot;10193  https://www.amazon.com/Shelter-Place-Nora-Robe...        Nora Roberts   \n&quot;,
+       &quot;10194  https://www.amazon.com/Last-Time-Lied-Novel/dp...         Riley Sager   \n&quot;,
+       &quot;\n&quot;,
+       &quot;          bestsellers_date                                        description  \\\n&quot;,
+       &quot;0      ((1211587200000,),)  Odd Thomas, who can communicate with the dead,...   \n&quot;,
+       &quot;1      ((1211587200000,),)  Aliens have taken control of the minds and bod...   \n&quot;,
+       &quot;2      ((1211587200000,),)  A woman's happy marriage is shaken when she en...   \n&quot;,
+       &quot;3      ((1211587200000,),)  A Massachusetts state investigator and his tea...   \n&quot;,
+       &quot;4      ((1211587200000,),)  An aging porn queens aims to cap her career by...   \n&quot;,
+       &quot;...                    ...                                                ...   \n&quot;,
+       &quot;10190  ((1530921600000,),)  Jack Ryan Jr. risks his life to protect a woma...   \n&quot;,
+       &quot;10191  ((1530921600000,),)  A documentary filmmaker and an investment bank...   \n&quot;,
+       &quot;10192  ((1530921600000,),)   An artist upends a quiet town outside Cleveland.   \n&quot;,
+       &quot;10193  ((1530921600000,),)  Survivors of a mass shooting outside a mall in...   \n&quot;,
+       &quot;10194  ((1530921600000,),)  A painter is in danger when she returns to the...   \n&quot;,
+       &quot;\n&quot;,
+       &quot;               price       published_date      publisher   rank  \\\n&quot;,
+       &quot;0         (None, 27)  ((1212883200000,),)         Bantam   (1,)   \n&quot;,
+       &quot;1      (25.99, None)  ((1212883200000,),)  Little, Brown   (2,)   \n&quot;,
+       &quot;2      (24.95, None)  ((1212883200000,),)   St. Martin's   (3,)   \n&quot;,
+       &quot;3      (22.95, None)  ((1212883200000,),)         Putnam   (4,)   \n&quot;,
+       &quot;4      (24.95, None)  ((1212883200000,),)      Doubleday   (5,)   \n&quot;,
+       &quot;...              ...                  ...            ...    ...   \n&quot;,
+       &quot;10190      (None, 0)  ((1532217600000,),)         Putnam  (11,)   \n&quot;,
+       &quot;10191      (None, 0)  ((1532217600000,),)     Ballantine  (12,)   \n&quot;,
+       &quot;10192      (None, 0)  ((1532217600000,),)  Penguin Press  (13,)   \n&quot;,
+       &quot;10193      (None, 0)  ((1532217600000,),)   St. Martin's  (14,)   \n&quot;,
+       &quot;10194      (None, 0)  ((1532217600000,),)         Dutton  (15,)   \n&quot;,
+       &quot;\n&quot;,
+       &quot;      rank_last_week                     title weeks_on_list  \\\n&quot;,
+       &quot;0               (0,)                 ODD HOURS          (1,)   \n&quot;,
+       &quot;1               (1,)                  THE HOST          (3,)   \n&quot;,
+       &quot;2               (2,)  LOVE THE ONE YOU'RE WITH          (2,)   \n&quot;,
+       &quot;3               (0,)                 THE FRONT          (1,)   \n&quot;,
+       &quot;4               (0,)                     SNUFF          (1,)   \n&quot;,
+       &quot;...              ...                       ...           ...   \n&quot;,
+       &quot;10190           (6,)  TOM CLANCY LINE OF SIGHT          (4,)   \n&quot;,
+       &quot;10191          (11,)    SOMETHING IN THE WATER          (5,)   \n&quot;,
+       &quot;10192          (12,)   LITTLE FIRES EVERYWHERE         (41,)   \n&quot;,
+       &quot;10193           (5,)          SHELTER IN PLACE          (6,)   \n&quot;,
+       &quot;10194           (0,)      THE LAST TIME I LIED          (1,)   \n&quot;,
+       &quot;\n&quot;,
+       &quot;                 new_column  \n&quot;,
+       &quot;0      This is a new column  \n&quot;,
+       &quot;1      This is a new column  \n&quot;,
+       &quot;2      This is a new column  \n&quot;,
+       &quot;3      This is a new column  \n&quot;,
+       &quot;4      This is a new column  \n&quot;,
+       &quot;...                     ...  \n&quot;,
+       &quot;10190  This is a new column  \n&quot;,
+       &quot;10191  This is a new column  \n&quot;,
+       &quot;10192  This is a new column  \n&quot;,
+       &quot;10193  This is a new column  \n&quot;,
+       &quot;10194  This is a new column  \n&quot;,
+       &quot;\n&quot;,
+       &quot;[10195 rows x 13 columns]&quot;
+      ]
+     },
+     &quot;execution_count&quot;: 37,
+     &quot;metadata&quot;: {},
+     &quot;output_type&quot;: &quot;execute_result&quot;
+    }
+   ],
+   &quot;source&quot;: [
+    &quot;# Obtaining contents of df as Pandas dataFrame\n&quot;,
+    &quot;dataframe.toPandas()\n&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;markdown&quot;,
+   &quot;id&quot;: &quot;1e7ac15a&quot;,
+   &quot;metadata&quot;: {},
+   &quot;source&quot;: [
+    &quot;STOPPING SPARK SESSION&quot;
+   ]
+  },
+  {
+   &quot;cell_type&quot;: &quot;code&quot;,
+   &quot;execution_count&quot;: 38,
+   &quot;id&quot;: &quot;2422f125&quot;,
+   &quot;metadata&quot;: {},
+   &quot;outputs&quot;: [],
+   &quot;source&quot;: [
+    &quot;# End Spark Session \n&quot;,
+    &quot;sc.stop()&quot;
+   ]
+  }
+ ],
+ &quot;metadata&quot;: {
+  &quot;kernelspec&quot;: {
+   &quot;display_name&quot;: &quot;Python 3 (ipykernel)&quot;,
+   &quot;language&quot;: &quot;python&quot;,
+   &quot;name&quot;: &quot;python3&quot;
+  },
+  &quot;language_info&quot;: {
+   &quot;codemirror_mode&quot;: {
+    &quot;name&quot;: &quot;ipython&quot;,
+    &quot;version&quot;: 3
+   },
+   &quot;file_extension&quot;: &quot;.py&quot;,
+   &quot;mimetype&quot;: &quot;text/x-python&quot;,
+   &quot;name&quot;: &quot;python&quot;,
+   &quot;nbconvert_exporter&quot;: &quot;python&quot;,
+   &quot;pygments_lexer&quot;: &quot;ipython3&quot;,
+   &quot;version&quot;: &quot;3.11.4&quot;
+  }
+ },
+ &quot;nbformat&quot;: 4,
+ &quot;nbformat_minor&quot;: 5
+}</pre>
+</body>
+</html>
